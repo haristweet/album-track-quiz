@@ -62,8 +62,9 @@
 
   .album{display:flex; gap:16px; align-items:center; margin-bottom:6px;}
   .cover{width:92px; height:92px; flex:0 0 92px; border-radius:12px; position:relative; overflow:hidden;
-    border:1px solid rgba(255,255,255,.12); box-shadow:0 8px 20px rgba(0,0,0,.5);}
-  .cover canvas{width:100%; height:100%; display:block;}
+    border:1px solid rgba(255,255,255,.12); box-shadow:0 8px 20px rgba(0,0,0,.5); background:#0c0c14;}
+  .cover canvas, .cover img{width:100%; height:100%; display:block;}
+  .cover img{object-fit:cover;}
   .album .meta .ar{font-size:13px; color:var(--neon); letter-spacing:.08em; font-weight:700;}
   .album .meta .ti{font-size:21px; font-weight:800; line-height:1.15; margin:2px 0;}
   .album .meta .yr{font-size:13px; color:var(--dim);}
@@ -147,7 +148,7 @@
     <div class="bar"><i id="progBar" style="width:0%"></i></div>
 
     <div class="album">
-      <div class="cover"><canvas id="coverCanvas" width="184" height="184"></canvas></div>
+      <div class="cover"><img id="coverImg" alt="" class="hide"><canvas id="coverCanvas" width="184" height="184"></canvas></div>
       <div class="meta">
         <div class="ar" id="aArtist">—</div>
         <div class="ti" id="aTitle">—</div>
@@ -230,6 +231,31 @@ const DB = [
  ]},
 ];
 
+/* album cover art (Apple Music / iTunes CDN, keyed by "artist||title") */
+const COVERS = {
+  "Kraftwerk||Autobahn": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/49/a6/b0/49a6b061-cbd8-ede5-446d-dae8b50e3b32/5099996601457.jpg/300x300bb.jpg",
+  "Kraftwerk||Radio-Activity": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/60/c2/96/60c2962c-fc49-bbd9-153b-b6e8de41eb41/5099996601952.jpg/300x300bb.jpg",
+  "Kraftwerk||Trans-Europe Express": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/e2/80/bc/e280bcf9-4048-8c42-2b6b-d8b9c9bbed52/5099996602058_1500x1500_300dpi.jpg/300x300bb.jpg",
+  "Kraftwerk||The Man-Machine": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/b7/c1/48/b7c1481a-5a92-4b71-ee35-ab7c890770da/5099996602256.jpg/300x300bb.jpg",
+  "Kraftwerk||Computer World": "https://is1-ssl.mzstatic.com/image/thumb/Music1/v4/ac/34/2d/ac342dcf-8349-676f-9510-c1bd27e932d2/dj.ajlyslln.jpg/300x300bb.jpg",
+  "Kraftwerk||Electric Café": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/17/1f/66/171f6637-59e8-989b-3332-494882706427/5099969959158.jpg/300x300bb.jpg",
+  "電気グルーヴ||VITAMIN": "https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/e2/60/08/e260084a-3cc2-2d34-debf-acf3b6e72ddc/jacket_KSC200066B00Z_550.jpg/300x300bb.jpg",
+  "電気グルーヴ||DRAGON": "https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/8b/71/cf/8b71cf2b-647e-306c-6bba-ab4bf0afb230/jacket_KSC200094B00Z_550.jpg/300x300bb.jpg",
+  "電気グルーヴ||ORANGE": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/21/0f/ff/210fff8e-f202-282a-5bdd-d4aed2f0990a/jacket_KSC200142B00Z_550.jpg/300x300bb.jpg",
+  "電気グルーヴ||A": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/66/5f/d0/665fd078-d2cd-2594-c945-580d219b230e/jacket_KSC200184B00Z_550.jpg/300x300bb.jpg",
+  "Yellow Magic Orchestra||Yellow Magic Orchestra": "https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/fd/80/c3/fd80c340-e531-e754-f49d-a0a150fdf0dd/jacket_MHXX02925B00Z_550.jpg/300x300bb.jpg",
+  "Yellow Magic Orchestra||Solid State Survivor": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/57/a8/44/57a84446-4695-aff1-4f77-cd3529a032d1/4560427446622.jpg/300x300bb.jpg",
+  "Daft Punk||Homework": "https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/dc/68/45/dc684589-af57-6895-1177-4f2acbb93e47/190296240911.jpg/300x300bb.jpg",
+  "Daft Punk||Discovery": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/fd/4a/77/fd4a77db-0ebc-d043-41a2-f32fa1bb0fb4/dj.qrikkdwj.jpg/300x300bb.jpg",
+  "Daft Punk||Random Access Memories": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/e8/43/5f/e8435ffa-b6b9-b171-40ab-4ff3959ab661/886443919266.jpg/300x300bb.jpg",
+  "Depeche Mode||Music for the Masses": "https://is1-ssl.mzstatic.com/image/thumb/Music113/v4/96/7c/d9/967cd978-049b-766d-f561-2f92569c47fa/0094636010250.jpg/300x300bb.jpg",
+  "Depeche Mode||Violator": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/5c/0e/66/5c0e66c0-d383-5641-3ec0-4bdb629c49ad/886445705119.jpg/300x300bb.jpg",
+  "New Order||Power, Corruption & Lies": "https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/68/d3/13/68d31343-dbc6-fae0-c633-3ddcbd105f3a/190295420291.jpg/300x300bb.jpg",
+  "New Order||Technique": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/49/51/83/4951838a-1b2f-35c3-3984-89e87f288288/825646051021.jpg/300x300bb.jpg",
+  "Aphex Twin||Selected Ambient Works 85-92": "https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/5f/b3/e0/5fb3e08d-c2cd-3da4-6ad7-c5dc61803683/cover.jpg/300x300bb.jpg",
+  "Aphex Twin||...I Care Because You Do": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/5b/b8/00/5bb80093-db7e-fdb9-c4ce-48f81847f68b/mzi.jwcepubj.jpg/300x300bb.jpg",
+};
+
 /* =========================================================
    helpers
    ========================================================= */
@@ -257,7 +283,22 @@ const sfx = {
   end:()=>{[523,659,784,1046].forEach((f,i)=>setTimeout(()=>beep(f,0.16,'triangle',0.18),i*110));},
 };
 
-/* ---------- procedural cover art ---------- */
+/* ---------- cover: real artwork if available, else procedural ---------- */
+function setCover(q){
+  const img=$('#coverImg'), cv=$('#coverCanvas');
+  const url=COVERS[q.artist+'||'+q.title];
+  if(url){
+    img.onload=()=>{ img.classList.remove('hide'); cv.classList.add('hide'); };
+    img.onerror=()=>{ img.classList.add('hide'); cv.classList.remove('hide'); drawCover(cv,q,q.color); };
+    cv.classList.remove('hide'); drawCover(cv,q,q.color); // show placeholder while loading
+    img.src=url;
+  } else {
+    img.classList.add('hide'); img.removeAttribute('src');
+    cv.classList.remove('hide'); drawCover(cv,q,q.color);
+  }
+}
+
+/* ---------- procedural cover art (fallback) ---------- */
 function drawCover(canvas, album, colors){
   const c=canvas.getContext('2d'), W=canvas.width, H=canvas.height;
   // deterministic seed from title
@@ -343,7 +384,7 @@ function renderRound(){
   $('#aTitle').textContent = q.title;
   $('#aYear').textContent = q.year;
   $('#askCount').textContent = q.correctCount;
-  drawCover($('#coverCanvas'), q, q.color);
+  setCover(q);
 
   const box=$('#trackBox'); box.innerHTML='';
   q.options.forEach((op,i)=>{
