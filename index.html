@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ELECTRO ALBUM QUIZ — 収録曲を当てろ</title>
+<style>
+  :root{
+    --bg:#0a0a12; --panel:#14141f; --panel2:#1c1c2b;
+    --neon:#36e0ff; --pink:#ff3cac; --green:#2bff88; --red:#ff4b6e;
+    --yellow:#ffd23c; --txt:#e8eaf2; --dim:#8a8da3; --line:#2a2a3d;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0; background:var(--bg); color:var(--txt);
+    font-family:"Helvetica Neue",-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;}
+  body{min-height:100vh; display:flex; flex-direction:column; align-items:center;
+    background:
+      radial-gradient(900px 500px at 20% -10%, rgba(54,224,255,.10), transparent 60%),
+      radial-gradient(900px 500px at 90% 0%, rgba(255,60,172,.10), transparent 60%),
+      var(--bg);
+    overflow-x:hidden;}
+  .wrap{width:100%; max-width:760px; padding:18px 16px 60px; }
+
+  /* ---- header ---- */
+  .brand{display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;}
+  .logo{font-weight:800; letter-spacing:.14em; font-size:13px;
+    background:linear-gradient(90deg,var(--neon),var(--pink)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .sound{font-size:12px; color:var(--dim); border:1px solid var(--line); padding:5px 10px; border-radius:20px; cursor:pointer; user-select:none;}
+  .sound.on{color:var(--neon); border-color:var(--neon);}
+
+  /* ---- panels ---- */
+  .card{background:linear-gradient(180deg,var(--panel),var(--panel2));
+    border:1px solid var(--line); border-radius:18px; padding:22px;
+    box-shadow:0 20px 50px rgba(0,0,0,.45);}
+
+  /* ---- start screen ---- */
+  .hero h1{font-size:30px; line-height:1.15; margin:6px 0 2px; letter-spacing:.02em;}
+  .hero .sub{color:var(--dim); font-size:14px; margin:0 0 18px;}
+  .hero .jp{font-size:18px; color:var(--neon); letter-spacing:.05em; margin-top:14px;}
+  .rules{font-size:13.5px; line-height:1.85; color:#cfd2e4; margin:14px 0 6px;}
+  .rules b{color:var(--yellow);}
+  .chiprow{display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 4px;}
+  .tag{font-size:12px; color:var(--dim); border:1px solid var(--line); padding:5px 11px; border-radius:20px;}
+  .btn{display:block; width:100%; border:0; cursor:pointer; font-weight:800; letter-spacing:.08em;
+    padding:16px; border-radius:14px; font-size:16px; margin-top:18px; color:#06121a;
+    background:linear-gradient(90deg,var(--neon),#7af0ff); box-shadow:0 10px 26px rgba(54,224,255,.30);
+    transition:transform .08s ease, filter .15s;}
+  .btn:active{transform:translateY(2px);}
+  .btn.alt{background:linear-gradient(90deg,var(--pink),#ff7ac4); color:#1a0010; box-shadow:0 10px 26px rgba(255,60,172,.28);}
+  .btn.ghost{background:transparent; color:var(--txt); border:1px solid var(--line); box-shadow:none;}
+  .seg{display:flex; gap:8px; margin-top:14px;}
+  .seg button{flex:1; background:var(--panel2); border:1px solid var(--line); color:var(--dim);
+    padding:11px; border-radius:11px; font-size:14px; font-weight:700; cursor:pointer;}
+  .seg button.sel{color:#06121a; background:linear-gradient(90deg,var(--neon),#7af0ff); border-color:transparent;}
+  .lbl{font-size:12px; color:var(--dim); letter-spacing:.1em; text-transform:uppercase; margin-top:18px;}
+
+  /* ---- game screen ---- */
+  .topbar{display:flex; justify-content:space-between; align-items:center; font-size:13px; color:var(--dim); margin-bottom:12px;}
+  .topbar .score{color:var(--neon); font-weight:800;}
+  .bar{height:6px; background:var(--panel2); border-radius:6px; overflow:hidden; margin-bottom:16px; border:1px solid var(--line);}
+  .bar > i{display:block; height:100%; background:linear-gradient(90deg,var(--neon),var(--pink)); transition:width .3s;}
+
+  .album{display:flex; gap:16px; align-items:center; margin-bottom:6px;}
+  .cover{width:92px; height:92px; flex:0 0 92px; border-radius:12px; position:relative; overflow:hidden;
+    border:1px solid rgba(255,255,255,.12); box-shadow:0 8px 20px rgba(0,0,0,.5);}
+  .cover canvas{width:100%; height:100%; display:block;}
+  .album .meta .ar{font-size:13px; color:var(--neon); letter-spacing:.08em; font-weight:700;}
+  .album .meta .ti{font-size:21px; font-weight:800; line-height:1.15; margin:2px 0;}
+  .album .meta .yr{font-size:13px; color:var(--dim);}
+  .ask{font-size:14px; color:#cfd2e4; margin:16px 0 12px;}
+  .ask b{color:var(--yellow);}
+
+  .tracks{display:flex; flex-wrap:wrap; gap:9px;}
+  .trk{font-size:13.5px; padding:10px 13px; border-radius:11px; cursor:pointer; user-select:none;
+    border:1px solid var(--line); background:var(--panel2); color:#dfe2f1; transition:all .12s;
+    display:flex; align-items:center; gap:7px;}
+  .trk:active{transform:scale(.97);}
+  .trk .bx{width:15px; height:15px; border-radius:4px; border:1.5px solid var(--dim); flex:0 0 15px; display:grid; place-items:center; font-size:10px; color:#06121a;}
+  .trk.sel{border-color:var(--neon); background:rgba(54,224,255,.13); color:#fff;}
+  .trk.sel .bx{background:var(--neon); border-color:var(--neon);}
+  /* reveal states */
+  .trk.reveal{cursor:default;}
+  .trk.r-hit{border-color:var(--green); background:rgba(43,255,136,.16); color:#eafff3;}
+  .trk.r-hit .bx{background:var(--green); border-color:var(--green);}
+  .trk.r-miss{border-color:var(--yellow); background:rgba(255,210,60,.12); color:#fff6da;}
+  .trk.r-wrong{border-color:var(--red); background:rgba(255,75,110,.16); color:#ffe6eb; text-decoration:line-through;}
+  .trk.r-wrong .bx{background:var(--red); border-color:var(--red);}
+
+  .legend{display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:var(--dim); margin:14px 0 2px;}
+  .legend span{display:inline-flex; align-items:center; gap:6px;}
+  .dot{width:10px; height:10px; border-radius:3px; display:inline-block;}
+
+  .roundmsg{text-align:center; font-weight:800; font-size:18px; margin:16px 0 2px;}
+
+  /* ---- result screen ---- */
+  .big{font-size:54px; font-weight:800; text-align:center; margin:6px 0 0;
+    background:linear-gradient(90deg,var(--neon),var(--pink)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .rank{text-align:center; font-size:20px; font-weight:800; letter-spacing:.1em; margin:2px 0 10px;}
+  .stats{display:flex; gap:10px; margin:14px 0;}
+  .stat{flex:1; background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:12px; text-align:center;}
+  .stat .n{font-size:22px; font-weight:800;}
+  .stat .l{font-size:11px; color:var(--dim); letter-spacing:.08em; margin-top:2px;}
+
+  .hide{display:none !important;}
+  .fade{animation:fade .35s ease;}
+  @keyframes fade{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:none;}}
+  .foot{text-align:center; color:#5a5d72; font-size:11px; margin-top:18px; letter-spacing:.04em;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">
+    <div class="logo">◈ ELECTRO ALBUM QUIZ</div>
+    <div id="soundBtn" class="sound">♪ SOUND: OFF</div>
+  </div>
+
+  <!-- ============ START ============ -->
+  <div id="startScreen" class="card hero fade">
+    <h1>収録曲を<br>当てろ。</h1>
+    <p class="sub">Techno / Electronic Album Tracklist Quiz</p>
+    <div class="jp">アルバムに入ってる曲は、どれ？</div>
+    <div class="rules">
+      画面に1枚のアルバムが表示されます。<br>
+      下に並ぶ曲名は、<b>そのアーティストの別アルバムの曲</b>も混ざっています。<br>
+      <b>表示されたアルバムに収録されている曲だけ</b>をすべて選んで「決定」。<br>
+      正解した曲は <b>+1</b>、間違って選んだ曲は <b>−1</b>。
+    </div>
+    <div class="lbl">出題ジャンル</div>
+    <div class="chiprow" id="artistTags"></div>
+
+    <div class="lbl">出題数</div>
+    <div class="seg" id="roundSeg">
+      <button data-n="5" class="sel">5問</button>
+      <button data-n="8">8問</button>
+      <button data-n="12">12問</button>
+    </div>
+
+    <button class="btn" id="startBtn">▶ スタート</button>
+  </div>
+
+  <!-- ============ GAME ============ -->
+  <div id="gameScreen" class="card hide">
+    <div class="topbar">
+      <span id="roundLabel">ROUND 1 / 5</span>
+      <span>SCORE <span class="score" id="scoreLabel">0</span></span>
+    </div>
+    <div class="bar"><i id="progBar" style="width:0%"></i></div>
+
+    <div class="album">
+      <div class="cover"><canvas id="coverCanvas" width="184" height="184"></canvas></div>
+      <div class="meta">
+        <div class="ar" id="aArtist">—</div>
+        <div class="ti" id="aTitle">—</div>
+        <div class="yr" id="aYear">—</div>
+      </div>
+    </div>
+
+    <div class="ask">この中から <b id="askCount">?</b> 曲、このアルバムの収録曲を選べ</div>
+    <div class="tracks" id="trackBox"></div>
+
+    <div id="legendBox" class="legend hide">
+      <span><i class="dot" style="background:var(--green)"></i>正解</span>
+      <span><i class="dot" style="background:var(--yellow)"></i>選び逃し</span>
+      <span><i class="dot" style="background:var(--red)"></i>おとり（誤選択）</span>
+    </div>
+    <div id="roundMsg" class="roundmsg hide"></div>
+
+    <button class="btn" id="submitBtn">決定</button>
+    <button class="btn alt hide" id="nextBtn">次へ ▶</button>
+  </div>
+
+  <!-- ============ RESULT ============ -->
+  <div id="resultScreen" class="card hide">
+    <div class="lbl" style="text-align:center;margin-top:0">FINAL SCORE</div>
+    <div class="big" id="finalScore">0</div>
+    <div class="rank" id="rankText">—</div>
+    <div class="stats">
+      <div class="stat"><div class="n" id="stHit">0</div><div class="l">正解した曲</div></div>
+      <div class="stat"><div class="n" id="stWrong">0</div><div class="l">誤選択</div></div>
+      <div class="stat"><div class="n" id="stAcc">0%</div><div class="l">正答率</div></div>
+    </div>
+    <button class="btn" id="againBtn">もう一度プレイ</button>
+    <button class="btn ghost" id="homeBtn">タイトルへ</button>
+  </div>
+
+  <div class="foot">DATA: 厳選した電子音楽の名盤を収録 ／ inspired by Discogs tracklists</div>
+</div>
+
+<script>
+/* =========================================================
+   DATA — テクノ/電子音楽の名盤（収録曲を厳選埋め込み）
+   各アーティストは複数アルバムを持ち、おとりは同アーティストの
+   別アルバム曲から出題される。
+   ========================================================= */
+const DB = [
+ { artist:"Kraftwerk", color:["#ff2e2e","#0b0b0b"], albums:[
+   { title:"Autobahn", year:1974, tracks:["Autobahn","Kometenmelodie 1","Kometenmelodie 2","Mitternacht","Morgenspaziergang"] },
+   { title:"Radio-Activity", year:1975, tracks:["Geiger Counter","Radioactivity","Radioland","Airwaves","The Voice of Energy","Antenna","Radio Stars","Uranium","Transistor","Ohm Sweet Ohm"] },
+   { title:"Trans-Europe Express", year:1977, tracks:["Europe Endless","The Hall of Mirrors","Showroom Dummies","Trans-Europe Express","Metal on Metal","Franz Schubert","Endless Endless"] },
+   { title:"The Man-Machine", year:1978, tracks:["The Robots","Spacelab","Metropolis","The Model","Neon Lights","The Man-Machine"] },
+   { title:"Computer World", year:1981, tracks:["Computer World","Pocket Calculator","Numbers","Computer World 2","Computer Love","Home Computer","It's More Fun to Compute"] },
+   { title:"Electric Café", year:1986, tracks:["Boing Boom Tschak","Techno Pop","Musique Non Stop","The Telephone Call","Sex Object","Electric Café"] },
+ ]},
+ { artist:"Yellow Magic Orchestra", color:["#e60023","#f7d417"], albums:[
+   { title:"Yellow Magic Orchestra", year:1978, tracks:["Computer Game (Firecracker)","Tong Poo","La Femme Chinoise","Simoon","Cosmic Surfin'","Mad Pierrot"] },
+   { title:"Solid State Survivor", year:1979, tracks:["Technopolis","Absolute Ego Dance","Rydeen","Castalia","Behind the Mask","Day Tripper","Insomnia","Solid State Survivor"] },
+ ]},
+ { artist:"Daft Punk", color:["#c9a227","#1a1a1a"], albums:[
+   { title:"Homework", year:1997, tracks:["Revolution 909","Da Funk","Phoenix","Around the World","Rollin' & Scratchin'","Teachers","Burnin'","Indo Silver Club"] },
+   { title:"Discovery", year:2001, tracks:["One More Time","Aerodynamic","Digital Love","Harder Better Faster Stronger","Crescendolls","Something About Us","Veridis Quo","Face to Face"] },
+   { title:"Random Access Memories", year:2013, tracks:["Give Life Back to Music","Giorgio by Moroder","Instant Crush","Lose Yourself to Dance","Touch","Get Lucky","Doin' It Right","Contact"] },
+ ]},
+ { artist:"Depeche Mode", color:["#b30000","#101010"], albums:[
+   { title:"Music for the Masses", year:1987, tracks:["Never Let Me Down Again","Strangelove","Sacred","Little 15","Behind the Wheel","I Want You Now","Nothing","Pimpf"] },
+   { title:"Violator", year:1990, tracks:["World in My Eyes","Sweetest Perfection","Personal Jesus","Halo","Waiting for the Night","Enjoy the Silence","Policy of Truth","Clean"] },
+ ]},
+ { artist:"New Order", color:["#1f6feb","#0d0d0d"], albums:[
+   { title:"Power, Corruption & Lies", year:1983, tracks:["Age of Consent","We All Stand","The Village","5 8 6","Your Silent Face","Ultraviolence","Ecstasy","Leave Me Alone"] },
+   { title:"Technique", year:1989, tracks:["Fine Time","All the Way","Love Less","Round & Round","Run","Mr. Disco","Vanishing Point","Dream Attack"] },
+ ]},
+ { artist:"Aphex Twin", color:["#19c37d","#0a0a0a"], albums:[
+   { title:"Selected Ambient Works 85-92", year:1992, tracks:["Xtal","Tha","Pulsewidth","Ageispolis","Green Calx","Heliosphan","We Are the Music Makers","Ptolemy","Hedphelym","Delphium"] },
+   { title:"...I Care Because You Do", year:1995, tracks:["Acrid Avid Jam Shred","The Waxen Pith","Wax the Nip","Ventolin","Come On You Slags!","Mookid","Alberto Balsalm","Cow Cud Is a Twin","ICCT Hedral"] },
+ ]},
+];
+
+/* =========================================================
+   helpers
+   ========================================================= */
+const $ = s => document.querySelector(s);
+const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]];} return a; };
+const pick = (a,n) => shuffle(a).slice(0,n);
+
+/* ---------- sound (WebAudio, no assets) ---------- */
+let AC=null, soundOn=false;
+function ensureAC(){ if(!AC){ try{ AC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } if(AC&&AC.state==='suspended') AC.resume(); }
+function beep(freq, dur=0.08, type='square', vol=0.18){
+  if(!soundOn||!AC) return;
+  const t=AC.currentTime, o=AC.createOscillator(), g=AC.createGain();
+  o.type=type; o.frequency.value=freq; o.connect(g); g.connect(AC.destination);
+  g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.start(t); o.stop(t+dur+0.02);
+}
+const sfx = {
+  tick:()=>beep(520,0.05,'square',0.10),
+  untick:()=>beep(300,0.05,'square',0.08),
+  good:()=>{beep(660,0.09,'triangle',0.16);setTimeout(()=>beep(990,0.12,'triangle',0.16),70);},
+  bad:()=>{beep(180,0.18,'sawtooth',0.16);},
+  round:(s)=>{ if(s>=0){beep(523,0.1);setTimeout(()=>beep(784,0.14),90);} else {beep(220,0.2,'sawtooth');} },
+  end:()=>{[523,659,784,1046].forEach((f,i)=>setTimeout(()=>beep(f,0.16,'triangle',0.18),i*110));},
+};
+
+/* ---------- procedural cover art ---------- */
+function drawCover(canvas, album, colors){
+  const c=canvas.getContext('2d'), W=canvas.width, H=canvas.height;
+  // deterministic seed from title
+  let seed=0; for(const ch of (album.artist+album.title)) seed=(seed*31+ch.charCodeAt(0))>>>0;
+  const rnd=()=>{ seed=(seed*1664525+1013904223)>>>0; return seed/4294967296; };
+  c.fillStyle=colors[1]; c.fillRect(0,0,W,H);
+  const mode=Math.floor(rnd()*4);
+  c.fillStyle=colors[0];
+  if(mode===0){ // bars
+    for(let i=0;i<7;i++){ const y=rnd()*H; c.globalAlpha=0.35+rnd()*0.5; c.fillRect(0,y,W,6+rnd()*22); }
+  } else if(mode===1){ // circles
+    for(let i=0;i<5;i++){ c.globalAlpha=0.25+rnd()*0.55; c.beginPath(); c.arc(rnd()*W,rnd()*H,15+rnd()*55,0,7); c.fill(); }
+  } else if(mode===2){ // grid
+    const n=4+Math.floor(rnd()*3), s=W/n;
+    for(let x=0;x<n;x++)for(let y=0;y<n;y++){ if(rnd()>0.5){ c.globalAlpha=0.3+rnd()*0.6; c.fillRect(x*s,y*s,s,s);} }
+  } else { // diagonal
+    c.save(); c.translate(W/2,H/2); c.rotate((rnd()-0.5));
+    for(let i=-8;i<8;i++){ c.globalAlpha=0.25+rnd()*0.5; c.fillRect(-W, i*16, W*2, 5+rnd()*9);} c.restore();
+  }
+  c.globalAlpha=1;
+  // title initials
+  const ini=album.title.replace(/[^A-Za-z0-9]/g,'').slice(0,3).toUpperCase()||'EP';
+  c.fillStyle='rgba(255,255,255,.92)'; c.font='bold 44px Helvetica,Arial'; c.textAlign='center'; c.textBaseline='middle';
+  c.shadowColor='rgba(0,0,0,.6)'; c.shadowBlur=8; c.fillText(ini,W/2,H/2); c.shadowBlur=0;
+}
+
+/* =========================================================
+   game state
+   ========================================================= */
+let state = { rounds:5, qs:[], idx:0, score:0, totalHit:0, totalWrong:0, totalTracks:0, phase:'play', sel:new Set() };
+
+function buildQuestions(n){
+  // flatten albums with artist ref
+  const all=[];
+  DB.forEach(a=>a.albums.forEach(al=>all.push({artist:a.artist, color:a.color, ...al})));
+  const chosen = pick(all, Math.min(n, all.length));
+  // if need more than available unique albums, allow repeats from reshuffle
+  while(chosen.length<n){ chosen.push(...pick(all, n-chosen.length)); }
+  return chosen.slice(0,n).map(makeRound);
+}
+
+function makeRound(album){
+  const correct = album.tracks.slice();
+  // decoys from SAME artist's OTHER albums
+  const artistObj = DB.find(a=>a.artist===album.artist);
+  let decoyPool=[];
+  artistObj.albums.forEach(al=>{ if(al.title!==album.title) decoyPool.push(...al.tracks); });
+  decoyPool = decoyPool.filter(t=>!correct.includes(t));
+  // fallback: borrow from other artists if pool too small
+  if(decoyPool.length<5){
+    DB.forEach(a=>{ if(a.artist!==album.artist) a.albums.forEach(al=>decoyPool.push(...al.tracks)); });
+    decoyPool = [...new Set(decoyPool)].filter(t=>!correct.includes(t));
+  }
+  const nDecoy = Math.min(decoyPool.length, Math.max(4, Math.min(7, Math.round(correct.length*0.9))));
+  const decoys = pick(decoyPool, nDecoy);
+  const options = shuffle([...correct.map(t=>({t,ok:true})), ...decoys.map(t=>({t,ok:false}))]);
+  return { artist:album.artist, title:album.title, year:album.year, color:album.color, correctCount:correct.length, options };
+}
+
+/* =========================================================
+   rendering / flow
+   ========================================================= */
+function show(id){ ['startScreen','gameScreen','resultScreen'].forEach(s=>$('#'+s).classList.toggle('hide', s!==id)); }
+
+function renderStart(){
+  $('#artistTags').innerHTML = DB.map(a=>`<span class="tag">${a.artist} <span style="color:#5a5d72">×${a.albums.length}</span></span>`).join('');
+}
+
+function startGame(){
+  ensureAC();
+  state.qs = buildQuestions(state.rounds);
+  state.idx=0; state.score=0; state.totalHit=0; state.totalWrong=0; state.totalTracks=0;
+  show('gameScreen'); renderRound();
+}
+
+function renderRound(){
+  const q = state.qs[state.idx];
+  state.phase='play'; state.sel=new Set();
+  $('#roundLabel').textContent = `ROUND ${state.idx+1} / ${state.rounds}`;
+  $('#scoreLabel').textContent = state.score;
+  $('#progBar').style.width = (state.idx/state.rounds*100)+'%';
+  $('#aArtist').textContent = q.artist;
+  $('#aTitle').textContent = q.title;
+  $('#aYear').textContent = q.year;
+  $('#askCount').textContent = q.correctCount;
+  drawCover($('#coverCanvas'), q, q.color);
+
+  const box=$('#trackBox'); box.innerHTML='';
+  q.options.forEach((op,i)=>{
+    const el=document.createElement('div');
+    el.className='trk'; el.dataset.i=i;
+    el.innerHTML=`<span class="bx">✓</span><span>${op.t}</span>`;
+    el.onclick=()=>toggleTrack(i,el);
+    box.appendChild(el);
+  });
+  $('#legendBox').classList.add('hide');
+  $('#roundMsg').classList.add('hide');
+  $('#submitBtn').classList.remove('hide');
+  $('#nextBtn').classList.add('hide');
+  $('#gameScreen').classList.remove('fade'); void $('#gameScreen').offsetWidth; $('#gameScreen').classList.add('fade');
+}
+
+function toggleTrack(i,el){
+  if(state.phase!=='play') return;
+  if(state.sel.has(i)){ state.sel.delete(i); el.classList.remove('sel'); sfx.untick(); }
+  else { state.sel.add(i); el.classList.add('sel'); sfx.tick(); }
+}
+
+function submitRound(){
+  const q=state.qs[state.idx];
+  state.phase='reveal';
+  let hit=0, wrong=0;
+  q.options.forEach((op,i)=>{
+    const el=$(`.trk[data-i="${i}"]`); el.classList.add('reveal');
+    const chosen=state.sel.has(i);
+    if(op.ok && chosen){ el.classList.add('r-hit'); hit++; }
+    else if(op.ok && !chosen){ el.classList.add('r-miss'); }
+    else if(!op.ok && chosen){ el.classList.add('r-wrong'); wrong++; }
+  });
+  const roundScore = hit - wrong;
+  state.score += roundScore;
+  state.totalHit += hit; state.totalWrong += wrong; state.totalTracks += q.correctCount;
+  $('#scoreLabel').textContent = state.score;
+  $('#progBar').style.width = ((state.idx+1)/state.rounds*100)+'%';
+
+  // message
+  let msg;
+  if(hit===q.correctCount && wrong===0) msg=`★ PERFECT！全${q.correctCount}曲的中`;
+  else if(roundScore>0) msg=`${hit}曲的中・誤り${wrong}（+${roundScore}）`;
+  else if(roundScore===0) msg=`${hit}曲的中・誤り${wrong}（±0）`;
+  else msg=`${hit}曲的中・誤り${wrong}（${roundScore}）`;
+  const rm=$('#roundMsg'); rm.textContent=msg; rm.style.color = roundScore>0?'var(--green)':(roundScore<0?'var(--red)':'var(--yellow)');
+  rm.classList.remove('hide');
+  $('#legendBox').classList.remove('hide');
+  $('#submitBtn').classList.add('hide');
+  $('#nextBtn').classList.remove('hide');
+  $('#nextBtn').textContent = (state.idx+1<state.rounds) ? '次へ ▶' : '結果を見る ▶';
+  sfx.round(roundScore);
+}
+
+function nextRound(){
+  state.idx++;
+  if(state.idx<state.rounds) renderRound();
+  else showResult();
+}
+
+function showResult(){
+  show('resultScreen');
+  $('#finalScore').textContent = state.score;
+  $('#stHit').textContent = state.totalHit;
+  $('#stWrong').textContent = state.totalWrong;
+  const acc = state.totalTracks ? Math.round(state.totalHit/state.totalTracks*100) : 0;
+  $('#stAcc').textContent = acc+'%';
+  let rank, col;
+  if(acc>=95 && state.totalWrong===0){ rank='◆ TECHNO MASTER'; col='var(--neon)'; }
+  else if(acc>=80){ rank='● ディガー級'; col='var(--green)'; }
+  else if(acc>=55){ rank='▲ なかなかの耳'; col='var(--yellow)'; }
+  else { rank='■ 修行が足りない'; col='var(--red)'; }
+  const rt=$('#rankText'); rt.textContent=rank; rt.style.color=col;
+  sfx.end();
+}
+
+/* =========================================================
+   events
+   ========================================================= */
+$('#soundBtn').onclick=()=>{ soundOn=!soundOn; ensureAC(); const b=$('#soundBtn'); b.classList.toggle('on',soundOn); b.textContent='♪ SOUND: '+(soundOn?'ON':'OFF'); if(soundOn) sfx.tick(); };
+$('#roundSeg').onclick=e=>{ const b=e.target.closest('button'); if(!b)return; [...$('#roundSeg').children].forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); state.rounds=+b.dataset.n; };
+$('#startBtn').onclick=startGame;
+$('#submitBtn').onclick=submitRound;
+$('#nextBtn').onclick=nextRound;
+$('#againBtn').onclick=startGame;
+$('#homeBtn').onclick=()=>show('startScreen');
+
+renderStart();
+show('startScreen');
+</script>
+</body>
+</html>
