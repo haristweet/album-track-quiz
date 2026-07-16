@@ -1,0 +1,62 @@
+# 電子音楽の原点: Jean-Michel Jarre / Tangerine Dream / Vangelis / Giorgio Moroder
+# year は配信メタデータが再発年になっている盤があるので原盤の発表年を手で指定している。
+# Tangerine Dream は Rubycon / Force Majeure / Tangram など、Vangelis は Blade Runner などが
+# Apple のカタログに無いため、配信されている分のみ収録。
+CURATION = [
+    ("Jean-Michel Jarre", ["#4fc3f7", "#0a0a0a"], "US", [
+        ("Oxygène", 1976, 1719812323, {}),
+        ("Équinoxe", 1978, 1719812711, {}),
+        ("Les chants magnétiques", 1981, 1719812406, {}),
+        ("Zoolook", 1984, 1027734795, {}),
+        ("Rendez-Vous", 1986, 1027735025, {}),
+        ("Revolutions", 1988, 1027736425, {}),
+        ("Waiting for Cousteau", 1990, 1027736044, {}),
+        ("Chronology", 1993, 1027734461, {}),
+        ("Oxygene 7-13", 1997, 1426515340, {}),
+        ("Metamorphoses", 1999, 1426513702, {}),
+        ("Geometry of Love", 2003, 1426555631, {}),
+        ("Electronica 1: The Time Machine", 2015, 1715068379, {}),
+        ("Oxygene 3", 2016, 1163143402, {}),
+        ("Equinoxe Infinity", 2018, 1441178079, {}),
+        ("Amazônia", 2021, 1557713010, {}),
+        ("OXYMORE", 2022, 1631819443, {}),
+    ]),
+    ("Tangerine Dream", ["#9c27b0", "#0a0a0a"], "US", [
+        ("Electronic Meditation", 1970, 1485047444, {}),
+        ("Alpha Centauri", 1971, 1494998556, {}),
+        ("Zeit", 1972, 1504490042, {}),
+        ("Atem", 1973, 1485047028, {}),
+        ("Phaedra", 1974, 723871803, {}),
+        ("Stratosfear", 1976, 714909209, {}),
+        ("Exit", 1981, 41228218, {}),
+        ("White Eagle", 1982, 1536061944, {}),
+        ("Hyperborea", 1983, 1536061933, {}),
+        ("Le Parc", 1985, 1494960795, {}),
+        ("Green Desert", 1986, 1485047524, {}),
+        ("Underwater Sunlight", 1986, 1485047618, {}),
+        ("Tyger", 1987, 1485047865, {}),
+        ("Quantum Gate", 2017, 1275652998, {}),
+        ("Raum", 2022, 1599337918, {}),
+    ]),
+    ("Vangelis", ["#26c6da", "#0a0a0a"], "US", [
+        ("L'apocalypse des animaux", 1973, 1442873742, {}),
+        ("Albedo 0.39", 1976, 254801285, {}),
+        ("Spiral", 1977, 302057146, {}),
+        ("China", 1979, 1443092501, {}),
+        ("Opéra sauvage", 1979, 1443277095, {}),
+        ("Chariots of Fire", 1981, 1450958543, {}),
+        ("Antarctica", 1983, 1443091305, {}),
+        ("Soil Festivities", 1984, 1443151820, {}),
+        ("Mask", 1985, 1443175946, {}),
+    ]),
+    ("Giorgio Moroder", ["#ffa000", "#0a0a0a"], "US", [
+        ("Son of My Father", 1972, 1594223827, {}),
+        # Einzelgänger (1975) は曲データが配信されていないため収録できず
+        ("Knights in White Satin", 1976, 1443868531, {}),
+        ("From Here to Eternity", 1977, 1443545779, {}),
+        ("Midnight Express", 1978, 1443529341, {}),
+        ("Cat People", 1982, 1443427360, {}),
+        ("Metropolis", 1984, 217274512, {}),
+        ("Déjà Vu", 2015, 983241730, {}),
+    ]),
+]
